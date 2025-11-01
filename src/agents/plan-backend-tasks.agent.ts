@@ -9,15 +9,31 @@ export class PlanBackendTasksAgent extends BaseAgent {
   }
 
   private buildPrompt(architecture: string) {
-    return `You are a senior backend developer.
-Create an execution plan for backend tasks only based on the software architecture below.
-Architecture:
+    return `You are a senior backend engineer creating a detailed implementation plan.
+Architecture and technical requirements:
 ${architecture}
 
 Requirements:
-- Break down into EPIC -> STORIES -> TASKS (max 3 levels)
-- For each task: goal, deliverable, dependencies, estimate (t-shirt size XS|S|M|L|XL)
-- Add a "critical path" and "technical risks"
+- Break down into EPIC -> STORIES -> TASKS (max 3 levels) focusing on backend implementation
+- Each task must be concrete and technical (API endpoints, database schemas, service implementations, etc.)
+- For each task specify:
+  * goal: Technical objective (e.g., "Implement authentication middleware with JWT validation")
+  * deliverable: Concrete output (e.g., "auth.middleware.ts with unit tests", "users migration file")
+  * deps: Technical dependencies (e.g., database setup, external API integration)
+  * estimate: Implementation time (XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week)
+
+Focus areas:
+- Database schema design and migrations
+- API endpoint implementation (routes, controllers, middleware)
+- Business logic and service layer
+- Data validation and error handling
+- Security implementation (authentication, authorization, input sanitization)
+- Integration with external services/APIs
+- Testing (unit tests, integration tests)
+- Performance optimization (caching, query optimization, indexing)
+- Background jobs/workers if needed
+- API documentation (OpenAPI/Swagger)
+
 Answer in STRICT JSON matching this schema:
 {
   "epics": [

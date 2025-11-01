@@ -9,15 +9,33 @@ export class PlanFrontendTasksAgent extends BaseAgent {
   }
 
   private buildPrompt(architecture: string) {
-    return `You are a senior frontend developer.
-Create an execution plan for frontend tasks only based on the software architecture below.
-Architecture:
+    return `You are a senior frontend engineer creating a detailed implementation plan.
+Architecture and technical requirements:
 ${architecture}
 
 Requirements:
-- Break down into EPIC -> STORIES -> TASKS (max 3 levels)
-- For each task: goal, deliverable, dependencies, estimate (t-shirt size XS|S|M|L|XL)
-- Add a "critical path" and "technical risks"
+- Break down into EPIC -> STORIES -> TASKS (max 3 levels) focusing on frontend implementation
+- Each task must be concrete and technical (components, state management, routing, API integration, etc.)
+- For each task specify:
+  * goal: Technical objective (e.g., "Implement authentication flow with JWT token management")
+  * deliverable: Concrete output (e.g., "LoginForm.tsx component with unit tests", "auth API client module")
+  * deps: Technical dependencies (e.g., API endpoints ready, design system components)
+  * estimate: Implementation time (XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week)
+
+Focus areas:
+- Component architecture (atomic design, composition patterns)
+- State management setup (Redux, Zustand, Context, etc.)
+- Routing and navigation structure
+- API client implementation and data fetching (REST/GraphQL client)
+- Form handling and validation
+- Authentication/authorization UI flow
+- Error handling and loading states
+- Responsive design and cross-browser compatibility
+- Performance optimization (code splitting, lazy loading, memoization)
+- Accessibility (WCAG compliance, ARIA attributes, keyboard navigation)
+- Testing (unit tests, integration tests, e2e tests)
+- Build configuration and optimization
+
 Answer in STRICT JSON matching this schema:
 {
   "epics": [
