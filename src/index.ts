@@ -5,10 +5,34 @@ import { join } from "node:path";
 import { BriefToPlanGraph } from "./workflow/brief-to-plan.workflow";
 import { MarkdownFormatter } from "./utils/markdown-formatter";
 
+function parseBrief(): string {
+  const args = process.argv.slice(2);
+
+  // Look for --brief flag
+  const briefIndex = args.findIndex(arg => arg === "--brief" || arg === "-b");
+
+  if (briefIndex === -1 || briefIndex === args.length - 1) {
+    console.error("\n❌ Error: Missing required parameter --brief\n");
+    console.log("Usage:");
+    console.log("  npm start -- --brief \"Your project description here\"");
+    console.log("  npm start -- -b \"Your project description here\"");
+    console.log("  tsx src/index.ts --brief \"Your project description here\"\n");
+    process.exit(1);
+  }
+
+  // Get everything after --brief as the brief text
+  const brief = args.slice(briefIndex + 1).join(" ");
+
+  if (!brief.trim()) {
+    console.error("\n❌ Error: Brief cannot be empty\n");
+    process.exit(1);
+  }
+
+  return brief.trim();
+}
+
 async function main() {
-  const userBrief =
-    process.argv.slice(2).join(" ") ||
-    "Je veux une appli web pour suivre des séances de sport à domicile, avec création de programme, minuteur d'exos, et partage avec des amis.";
+  const userBrief = parseBrief();
 
   console.log("\n🚀 Starting technical plan generation...\n");
 
