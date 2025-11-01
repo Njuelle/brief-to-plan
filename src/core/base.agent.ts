@@ -2,6 +2,7 @@ import { RunnableConfig } from "@langchain/core/runnables";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { AppState, StateDiff } from "./types";
 import { LLMClient } from "./llm.client";
+import { z } from "zod";
 
 export abstract class BaseAgent {
   protected llm = this.llmFactory.create();
@@ -18,6 +19,15 @@ export abstract class BaseAgent {
   protected async ask(prompt: string) {
     const msg = await this.llm.invoke([new HumanMessage(prompt)]);
     return String(msg.content ?? "");
+  }
+
+  /** Utility to get structured output with Vercel AI SDK */
+  protected async askStructured<T>(
+    prompt: string,
+    schema: z.ZodSchema<T>,
+    options?: { maxTokens?: number; temperature?: number }
+  ): Promise<T> {
+    return this.llmFactory.generateStructured(prompt, schema, options);
   }
 
   /** Small helper for logging */

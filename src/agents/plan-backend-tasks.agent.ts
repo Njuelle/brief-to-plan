@@ -13,14 +13,23 @@ export class PlanBackendTasksAgent extends BaseAgent {
 Architecture and technical requirements:
 ${architecture}
 
-Requirements:
-- Break down into EPIC -> STORIES -> TASKS (max 3 levels) focusing on backend implementation
-- Each task must be concrete and technical (API endpoints, database schemas, service implementations, etc.)
-- For each task specify:
-  * goal: Technical objective (e.g., "Implement authentication middleware with JWT validation")
-  * deliverable: Concrete output (e.g., "auth.middleware.ts with unit tests", "users migration file")
-  * deps: Technical dependencies (e.g., database setup, external API integration)
-  * estimate: Implementation time (XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week)
+IMPORTANT - Structure Guidelines:
+Create 2-4 EPICs maximum. Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
+The hierarchy is strictly: EPIC > STORY > TASK (exactly 3 levels, no more, no less).
+
+Example structure:
+Epic 1: "User Management"
+  Story 1.1: "User Authentication"
+    Task 1.1.1: "Create user registration endpoint"
+    Task 1.1.2: "Implement JWT middleware"
+  Story 1.2: "User Profile"
+    Task 1.2.1: "Create profile update endpoint"
+
+Requirements for each task:
+- goal: Technical objective (e.g., "Implement authentication middleware with JWT validation")
+- deliverable: Concrete output (e.g., "auth.middleware.ts with unit tests", "users migration file")
+- deps: List of task names this depends on (e.g., ["Database setup", "User model creation"])
+- estimate: XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week
 
 Focus areas:
 - Database schema design and migrations
@@ -34,57 +43,30 @@ Focus areas:
 - Background jobs/workers if needed
 - API documentation (OpenAPI/Swagger)
 
-Answer in STRICT JSON matching this schema:
-{
-  "epics": [
-    {
-      "name": "string",
-      "stories": [
-        {
-          "name": "string",
-          "tasks": [
-            { "name": "string", "goal": "string", "deliverable": "string", "deps": ["string"], "estimate": "XS|S|M|L|XL" }
-          ]
-        }
-      ]
-    }
-  ],
-  "criticalPath": ["string"],
-  "risks": ["string"]
-}`;
+Also provide:
+- criticalPath: Array of task names on the critical path
+- risks: Array of technical risks identified`;
   }
 
   async run(state: AppState, config?: RunnableConfig): Promise<StateDiff> {
     const threadId = config?.configurable?.thread_id as string | undefined;
     this.log("start", threadId);
 
-    const raw = await this.ask(this.buildPrompt(state.expandedBrief ?? ""));
+    const plan = await this.askStructured(
+      this.buildPrompt(state.expandedBrief ?? ""),
+      PlanZ,
+      { temperature: 0.3, maxTokens: 4000 }
+    );
 
-    // Minimal validation/repair
-    let tasks: string[] = [];
-    try {
-      const jsonStart = raw.indexOf("{");
-      const jsonEnd = raw.lastIndexOf("}");
-      const candidate =
-        jsonStart >= 0 ? raw.slice(jsonStart, jsonEnd + 1) : raw;
-      const parsed = PlanZ.parse(JSON.parse(candidate));
-      tasks = parsed.epics.flatMap((e) =>
-        e.stories.flatMap((s) => s.tasks.map((t) => t.name))
-      );
-    } catch {
-      // Robust fallback (flat list)
-      tasks = raw
-        .split("\n")
-        .map((l) => l.replace(/^-+\s*/, "").trim())
-        .filter(Boolean)
-        .slice(0, 60);
-    }
+    const tasks = plan.epics.flatMap((e) =>
+      e.stories.flatMap((s) => s.tasks.map((t) => t.name))
+    );
 
     this.log(`produced ${tasks.length} tasks`, threadId);
 
     return {
       backendTasks: tasks,
-      messages: this.aiNote("task plan ready."),
+      messages: this.aiNote("Backend task plan ready."),
     };
   }
 }
