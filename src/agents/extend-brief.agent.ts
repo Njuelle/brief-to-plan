@@ -11,18 +11,22 @@ export class ExtendBriefAgent extends BaseAgent {
     const threadId = config?.configurable?.thread_id as string | undefined;
     this.log("start", threadId);
 
-    const prompt = `You are a senior technical lead analyzing requirements for implementation.
+    const prompt = `You are a product analyst helping to clarify and extend a project brief.
+
 Initial brief:
 "${state.brief}"
 
-Objective:
-- Analyze technical requirements and constraints (performance, scalability, security)
-- Identify system boundaries, data flows, and integration points
-- List technical assumptions, dependencies on external systems/APIs
-- Define technical success criteria (latency, throughput, reliability metrics)
-- Highlight technical risks and mitigation strategies
-- Specify non-functional requirements (observability, monitoring, error handling)
-Answer with 8-15 concise technical bullet points focused on implementation concerns.`;
+Your objective is to extend and clarify this brief from a PRODUCT and USER perspective:
+- What is the main problem this project is solving?
+- Who are the target users/audience?
+- What are the key features and functionality needed?
+- What is the expected user experience?
+- What are the business goals and success metrics?
+- Are there any important constraints or requirements (regulatory, accessibility, platform-specific)?
+- What is the expected scope (MVP vs full product)?
+
+Provide 6-12 clear bullet points that expand on the brief, focusing on WHAT needs to be built and WHY, not HOW to build it technically.
+Keep it product-focused and user-centric.`;
 
     const expanded = await this.ask(prompt);
 

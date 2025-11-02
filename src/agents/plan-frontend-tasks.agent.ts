@@ -8,17 +8,38 @@ export class PlanFrontendTasksAgent extends BaseAgent {
     return "planFrontendTasks";
   }
 
-  private buildPrompt(architecture: string) {
+  private buildPrompt(architecture: string, userStoryList: string) {
     return `You are a senior frontend engineer creating a detailed implementation plan.
-Architecture and technical requirements:
+
+Architecture design:
 ${architecture}
 
+User stories:
+${userStoryList}
+
 IMPORTANT - Structure Guidelines:
-Create 2-4 EPICs maximum. Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
+Create technical implementation epics and stories that align with the user stories above.
+Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
 The hierarchy is strictly: EPIC > STORY > TASK (exactly 3 levels, no more, no less).
 
+Map your technical epics to the user story epics where possible, but focus on frontend implementation:
+- Transform user stories into technical UI/UX implementation stories
+User stories and epics:
+${userStoryList}
+
+IMPORTANT - Structure Guidelines:
+Create technical implementation epics and stories that align with the user stories above.
+Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
+The hierarchy is strictly: EPIC > STORY > TASK (exactly 3 levels, no more, no less).
+
+Map your technical epics to the user story epics where possible, but focus on frontend implementation:
+- Transform user stories into technical UI/UX implementation stories
+- Break down each user story into the frontend technical tasks needed to support it
+- Group related UI/UX work into epics
+- Consider the user flows and acceptance criteria when planning components and features
+
 Example structure:
-Epic 1: "User Interface Setup"
+Epic 1: "User Management UI"
   Story 1.1: "Authentication UI"
     Task 1.1.1: "Create LoginForm component"
     Task 1.1.2: "Implement auth state management"
@@ -32,17 +53,17 @@ Requirements for each task:
 - estimate: XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week
 
 Focus areas:
-- Component architecture (atomic design, composition patterns)
-- State management setup (Redux, Zustand, Context, etc.)
-- Routing and navigation structure
+- Component architecture that fulfills user stories (atomic design, composition patterns)
+- State management setup (Redux, Zustand, Context, etc.) for user data and flows
+- Routing and navigation structure based on user journeys
 - API client implementation and data fetching (REST/GraphQL client)
-- Form handling and validation
-- Authentication/authorization UI flow
-- Error handling and loading states
+- Form handling and validation matching acceptance criteria
+- Authentication/authorization UI flow from user stories
+- Error handling and loading states for better UX
 - Responsive design and cross-browser compatibility
 - Performance optimization (code splitting, lazy loading, memoization)
-- Accessibility (WCAG compliance, ARIA attributes, keyboard navigation)
-- Testing (unit tests, integration tests, e2e tests)
+- Accessibility (WCAG compliance, ARIA attributes, keyboard navigation) as per acceptance criteria
+- Testing (unit tests, integration tests, e2e tests) covering user workflows
 - Build configuration and optimization
 
 Also provide:
@@ -54,8 +75,12 @@ Also provide:
     const threadId = config?.configurable?.thread_id as string | undefined;
     this.log("start", threadId);
 
+    const userStoryListText = state.userStoryList
+      ? JSON.stringify(state.userStoryList, null, 2)
+      : "No user stories available";
+
     const plan = await this.askStructured(
-      this.buildPrompt(state.expandedBrief ?? ""),
+      this.buildPrompt(state.architectureDesign ?? "", userStoryListText),
       PlanZ,
       { temperature: 0.3, maxTokens: 4000 }
     );

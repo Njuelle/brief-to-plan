@@ -2,14 +2,16 @@ import { Annotation, MemorySaver, StateGraph } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
 import { LLMClient } from "../core/llm.client";
 import { ExtendBriefAgent } from "../agents/extend-brief.agent";
+import { UserStoriesAgent } from "../agents/user-stories.agent";
 import { PlanBackendTasksAgent } from "../agents/plan-backend-tasks.agent";
 import { PlanFrontendTasksAgent } from "../agents/plan-frontend-tasks.agent";
-import { ArchitecturerAgent } from "../agents/architecturer.agent";
+import { ArchitectureAgent } from "../agents/architecture.agent";
 
 export class BriefToPlanGraph {
   private readonly llmFactory = new LLMClient();
   private readonly extend = new ExtendBriefAgent(this.llmFactory);
-  private readonly architecture = new ArchitecturerAgent(this.llmFactory);
+  private readonly userStories = new UserStoriesAgent(this.llmFactory);
+  private readonly architecture = new ArchitectureAgent(this.llmFactory);
   private readonly planBackend = new PlanBackendTasksAgent(this.llmFactory);
   private readonly planFrontend = new PlanFrontendTasksAgent(this.llmFactory);
 
@@ -23,6 +25,7 @@ export class BriefToPlanGraph {
     }),
     brief: Annotation<string>(),
     expandedBrief: Annotation<string>(),
+    userStoryList: Annotation<any>(),
     architectureDesign: Annotation<string>(),
     backendTasks: Annotation<string[]>(),
     frontendTasks: Annotation<string[]>(),
@@ -37,6 +40,9 @@ export class BriefToPlanGraph {
       .addNode(this.extend.name(), (state, config) =>
         this.extend.run(state, config)
       )
+      .addNode(this.userStories.name(), (state, config) =>
+        this.userStories.run(state, config)
+      )
       .addNode(this.architecture.name(), (state, config) =>
         this.architecture.run(state, config)
       )
@@ -47,7 +53,8 @@ export class BriefToPlanGraph {
         this.planFrontend.run(state, config)
       )
       .addEdge("__start__", this.extend.name())
-      .addEdge(this.extend.name(), this.architecture.name())
+      .addEdge(this.extend.name(), this.userStories.name())
+      .addEdge(this.userStories.name(), this.architecture.name())
       .addEdge(this.architecture.name(), this.planBackend.name())
       .addEdge(this.architecture.name(), this.planFrontend.name())
       .addEdge(this.planBackend.name(), "__end__")

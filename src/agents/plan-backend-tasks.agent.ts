@@ -8,21 +8,41 @@ export class PlanBackendTasksAgent extends BaseAgent {
     return "planBackendTasks";
   }
 
-  private buildPrompt(architecture: string) {
+  private buildPrompt(architecture: string, userStoryList: string) {
     return `You are a senior backend engineer creating a detailed implementation plan.
-Architecture and technical requirements:
+
+Architecture design:
 ${architecture}
 
+User stories:
+${userStoryList}
+
 IMPORTANT - Structure Guidelines:
-Create 2-4 EPICs maximum. Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
+Create technical implementation epics and stories that align with the user stories above.
+Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
 The hierarchy is strictly: EPIC > STORY > TASK (exactly 3 levels, no more, no less).
 
+Map your technical epics to the user story epics where possible, but focus on backend implementation:
+- Transform user stories into technical implementation stories
+User stories and epics:
+${userStoryList}
+
+IMPORTANT - Structure Guidelines:
+Create technical implementation epics and stories that align with the user stories above.
+Each EPIC contains multiple STORIES. Each STORY contains multiple TASKS.
+The hierarchy is strictly: EPIC > STORY > TASK (exactly 3 levels, no more, no less).
+
+Map your technical epics to the user story epics where possible, but focus on backend implementation:
+- Transform user stories into technical implementation stories
+- Break down each user story into the backend technical tasks needed to support it
+- Group related technical work into epics
+
 Example structure:
-Epic 1: "User Management"
-  Story 1.1: "User Authentication"
+Epic 1: "User Management Backend"
+  Story 1.1: "User Authentication API"
     Task 1.1.1: "Create user registration endpoint"
     Task 1.1.2: "Implement JWT middleware"
-  Story 1.2: "User Profile"
+  Story 1.2: "User Profile API"
     Task 1.2.1: "Create profile update endpoint"
 
 Requirements for each task:
@@ -32,12 +52,12 @@ Requirements for each task:
 - estimate: XS=1-2h, S=2-4h, M=1d, L=2-3d, XL=1week
 
 Focus areas:
-- Database schema design and migrations
-- API endpoint implementation (routes, controllers, middleware)
-- Business logic and service layer
+- Database schema design and migrations that support the user stories
+- API endpoint implementation (routes, controllers, middleware) for each user story
+- Business logic and service layer to fulfill acceptance criteria
 - Data validation and error handling
 - Security implementation (authentication, authorization, input sanitization)
-- Integration with external services/APIs
+- Integration with external services/APIs mentioned in user stories
 - Testing (unit tests, integration tests)
 - Performance optimization (caching, query optimization, indexing)
 - Background jobs/workers if needed
@@ -52,8 +72,12 @@ Also provide:
     const threadId = config?.configurable?.thread_id as string | undefined;
     this.log("start", threadId);
 
+    const userStoryListText = state.userStoryList
+      ? JSON.stringify(state.userStoryList, null, 2)
+      : "No user stories available";
+
     const plan = await this.askStructured(
-      this.buildPrompt(state.expandedBrief ?? ""),
+      this.buildPrompt(state.architectureDesign ?? "", userStoryListText),
       PlanZ,
       { temperature: 0.3, maxTokens: 4000 }
     );
