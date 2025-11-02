@@ -1,6 +1,5 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 
 export class LLMClient {
@@ -9,13 +8,17 @@ export class LLMClient {
     private readonly temperature = 0.2
   ) {}
 
-  /** Create LangChain client for text generation */
-  create() {
-    return new ChatOpenAI({
-      model: this.modelName,
-      temperature: this.temperature,
-      apiKey: process.env.OPENAI_API_KEY,
+  /** Generate text using Vercel AI SDK */
+  async generateText(
+    prompt: string,
+    options?: { temperature?: number }
+  ): Promise<string> {
+    const result = await generateText({
+      model: openai(this.modelName),
+      prompt,
+      temperature: options?.temperature ?? this.temperature,
     });
+    return result.text;
   }
 
   /** Generate structured output using Vercel AI SDK */

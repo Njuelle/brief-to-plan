@@ -8,12 +8,12 @@ import { PlanFrontendTasksAgent } from "../agents/plan-frontend-tasks.agent";
 import { ArchitectureAgent } from "../agents/architecture.agent";
 
 export class BriefToPlanGraph {
-  private readonly llmFactory = new LLMClient();
-  private readonly extend = new ExtendBriefAgent(this.llmFactory);
-  private readonly userStories = new UserStoriesAgent(this.llmFactory);
-  private readonly architecture = new ArchitectureAgent(this.llmFactory);
-  private readonly planBackend = new PlanBackendTasksAgent(this.llmFactory);
-  private readonly planFrontend = new PlanFrontendTasksAgent(this.llmFactory);
+  private readonly llmClient = new LLMClient();
+  private readonly extend = new ExtendBriefAgent(this.llmClient);
+  private readonly userStories = new UserStoriesAgent(this.llmClient);
+  private readonly architecture = new ArchitectureAgent(this.llmClient);
+  private readonly planBackend = new PlanBackendTasksAgent(this.llmClient);
+  private readonly planFrontend = new PlanFrontendTasksAgent(this.llmClient);
 
   private readonly Checkpoint = new MemorySaver();
 
